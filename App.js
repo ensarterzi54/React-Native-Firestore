@@ -1,20 +1,27 @@
+import React from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import { HabitProvider } from './context/HabitContext';
+import Header from './components/Header';
+import AddHabitForm from './components/AddHabitForm';
+import HabitList from './components/HabitList';
 
 export default function App() {
   return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <HabitProvider>
+      <View style={styles.container}>
+        <StatusBar style="auto" />
+        <Header />
+        <AddHabitForm />
+        <HabitList />
+      </View>
+    </HabitProvider>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: '#f5f5f5',
   },
 });
