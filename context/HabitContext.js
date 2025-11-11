@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { db } from '../config/firebase';
 import { collection, getDocs, addDoc, doc, updateDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { getTodayDate } from '../utils/dateUtils';
@@ -20,9 +20,10 @@ export const HabitProvider = ({ children }) => {
   const [habits, setHabits] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isConnected, setIsConnected] = useState(false);
+  const [currentDate, setCurrentDate] = useState(getTodayDate());
 
   // Alışkanlıkları Firestore'dan çek
-  const fetchHabits = async () => {
+  const fetchHabits = useCallback(async () => {
     try {
       const habitsCollection = collection(db, 'habits');
       const habitsSnapshot = await getDocs(habitsCollection);
@@ -39,7 +40,7 @@ export const HabitProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   // Yeni alışkanlık ekle
   const addHabit = async (habitName) => {
@@ -91,7 +92,27 @@ export const HabitProvider = ({ children }) => {
   // İlk yüklemede alışkanlıkları çek
   useEffect(() => {
     fetchHabits();
-  }, []);
+  }, [fetchHabits]);
+
+  // Tarih değişimini kontrol et (gece yarısı geçtiğinde)
+  useEffect(() => {
+    const checkDateChange = () => {
+      const today = getTodayDate();
+      if (today !== currentDate) {
+        console.log('📅 Tarih değişti, listeyi yeniliyor...');
+        setCurrentDate(today);
+        fetchHabits(); // Tarih değiştiğinde listeyi yenile
+      }
+    };
+
+    // Her dakika kontrol et
+    const interval = setInterval(checkDateChange, 60000); // 60 saniye = 1 dakika
+
+    // İlk kontrol
+    checkDateChange();
+
+    return () => clearInterval(interval);
+  }, [currentDate, fetchHabits]);
 
   const value = {
     habits,
